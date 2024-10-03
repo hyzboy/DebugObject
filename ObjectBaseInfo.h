@@ -2,7 +2,7 @@
 
 #include<iostream>
 
-template<typename T> constexpr const size_t GetHashCode() noexcept
+template<typename T> constexpr const size_t GetTypeHashCode() noexcept
 {
     return typeid(T).hash_code();
 }

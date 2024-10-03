@@ -21,9 +21,11 @@ private:    \
         std::cout<<#class_name " Destruct("<<GetSerialNumber()<<")"<<std::endl;    \
     }   \
 \
-    const size_t GetStaticHashCode() override \
+public: \
+\
+    static const size_t StaticHashCode()\
     {   \
-        return ::GetHashCode<class_name>(); \
+        return GetTypeHashCode<class_name>(); \
     }
 
 

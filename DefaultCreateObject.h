@@ -4,7 +4,7 @@
 
 template<typename T,typename ...ARGS> T *DefaultCreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args)
 {
-    const size_t hc=GetHashCode<T>();
+    const size_t hc=GetTypeHashCode<T>();
 
     ObjectManager *om=GetObjectManager(hc);
 
