@@ -25,3 +25,27 @@ public:
     virtual void Deinitailize()=0;
     virtual void Destory();
 };//class Object
+
+template<typename T> class DefaultObjectManager;
+
+#define OBJECT_CLASS_BODY(class_name) \
+private:    \
+\
+    friend class DefaultObjectManager<class_name>;\
+\
+    class_name(const ObjectBaseInfo &obi):Object(obi)   \
+    {   \
+        std::cout<<#class_name " Construct("<<GetSerialNumber()<<")"<<std::endl;   \
+    }   \
+\
+    virtual ~class_name() override  \
+    {   \
+        std::cout<<#class_name " Destruct("<<GetSerialNumber()<<")"<<std::endl;    \
+    }   \
+\
+public: \
+\
+    static const size_t StaticHashCode()\
+    {   \
+        return GetTypeHashCode<class_name>(); \
+    }
