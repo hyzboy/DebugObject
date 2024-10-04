@@ -18,6 +18,6 @@ template<typename T,typename ...ARGS> SafePtr<T> DefaultCreateObject(const char 
     return SafePtr<T>(obj);
 }
 
-#define DEFAULT_CREATE_OBJECT(class_name,...) DefaultCreateObject<class_name>(__FILE__,__FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__)
+#define NEW_OBJECT(class_name,...) DefaultCreateObject<class_name>(__FILE__,__FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__)
 
-#define DEFINE_DEFAULT_CREATE_OBJECT(class_name,type_name,...) SafePtr<class_name> type_name=DEFAULT_CREATE_OBJECT(class_name,__VA_OPT__(,) __VA_ARGS__)
+#define DEFAULT_NEW_OBJECT(class_name,type_name,...) SafePtr<class_name> type_name=NEW_OBJECT(class_name,__VA_OPT__(,) __VA_ARGS__)

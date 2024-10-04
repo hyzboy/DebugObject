@@ -27,9 +27,9 @@ DEFINE_DEFAULT_OBJECT_MANAGER(DebugObject);
 
 int main()
 {
-    SafePtr<DebugObject> obj1=DEFAULT_CREATE_OBJECT(DebugObject);
+    SafePtr<DebugObject> obj1=NEW_OBJECT(DebugObject);
 
-    DEFINE_DEFAULT_CREATE_OBJECT(DebugObject,obj2);         //等于上一行
+    DEFAULT_NEW_OBJECT(DebugObject,obj2);         //等于上一行
 
     //DebugObject *obj3=new DebugObject();                  //编译不过(构造函数被定义为私有)
 
