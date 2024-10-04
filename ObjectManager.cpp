@@ -17,33 +17,6 @@ namespace
     }
 }//namespace
 
-Object *ObjectManager::CreateObject(const char *source_file,const char *source_function,const size_t source_line)
-{
-    ObjectBaseInfo obi
-    {
-        .hash_code      =GetHashCode(),
-        .object_manager =this,
-        .serial_number  =AcquireSerialNumber(),
-        .source_file    =source_file,
-        .source_function=source_function,
-        .source_line    =source_line
-    };
-
-    return _CreateObject(obi);
-}
-
-bool ObjectManager::ReleaseObject(Object *obj)
-{
-    if(!obj)return(false);
-
-    if(obj->GetHashCode()!=GetHashCode())
-        return false;
-
-    _ReleaseObject(obj);
-
-    return true;
-}
-
 bool RegistryObjectManager(ObjectManager *om)
 {
     if(!om)

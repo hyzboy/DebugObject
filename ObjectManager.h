@@ -1,6 +1,7 @@
 #pragma once
 #include"Object.h"
 #include<tsl/robin_set.h>
+#include<tsl/robin_map.h>
 
 class Object;
 class ObjectManager
@@ -32,9 +33,6 @@ public:
     }
 
     virtual ~ObjectManager()=default;
-    
-    virtual Object *CreateObject(const char *source_file,const char *source_function,const size_t source_line);
-    virtual bool ReleaseObject(Object *obj);
 };//class ObjectManager
 
 bool RegistryObjectManager(ObjectManager *om);
@@ -43,23 +41,18 @@ void UnregistryObjectManager(ObjectManager *om);
 template<typename T> class DefaultObjectManager:public ObjectManager
 {
     tsl::robin_set<T *> object_set;
+    tsl::robin_map<size_t,SafePtrData<T> *> object_map;
 
 protected:
 
     virtual Object *_CreateObject(const ObjectBaseInfo &obi)
     {
-        T *obj=new T(obi);
-
-        object_set.insert(obj);
-
-        return obj;
+        return(new T(obi));
     }
 
     virtual void _ReleaseObject(Object *obj)
     {
-        object_set.erase(static_cast<T *>(obj));
-
-        obj->Deinitailize();
+        delete obj;
     }
 
 public:
@@ -83,6 +76,69 @@ public:
 
         UnregistryObjectManager(this);
     }
+
+protected:
+
+    template<typename T,typename ...ARGS> friend SafePtr<T> DefaultCreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args);
+
+    template<typename ...ARGS>
+    SafePtrData<T> *CreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args)
+    {
+        ObjectBaseInfo obi
+        {
+            .hash_code      =GetHashCode(),
+            .object_manager =this,
+            .serial_number  =AcquireSerialNumber(),
+            .source_file    =source_file,
+            .source_function=source_function,
+            .source_line    =source_line
+        };
+
+        Object *obj=_CreateObject(obi);
+
+        SafePtrData<T> *spd=new SafePtrData<T>((T *)obj);
+
+        object_set.insert({(T *)obj});
+        object_map.insert({obj->GetSerialNumber(),spd});
+
+        spd->ptr->Initailize(args...);
+
+        return spd;
+    }
+
+    template<typename T> friend class SafePtr;
+
+    void ReleaseObject(SafePtrData<T> *spd)
+    {
+        if(!spd)
+            return;
+
+        object_map.erase(spd->ptr->GetSerialNumber());
+        object_set.erase(spd->ptr);
+
+        if(spd->ptr)
+        {
+            spd->ptr->Deinitailize();
+            _ReleaseObject(spd->ptr);
+            spd->ptr=nullptr;
+        }
+
+        if(spd->count>1)
+        {
+            --spd->count;
+        }
+        else
+        {
+            delete spd;
+        }
+    }
+
+    template<typename T> friend SafePtr<T> GetObjectBySerial(const size_t &serial);
+
+    SafePtrData<T> *GetObjectBySerial(const size_t &serial)
+    {
+        return object_map.at(serial);
+    }
 };//class DefaultObjectManager
 
 #define DEFINE_DEFAULT_OBJECT_MANAGER(T) namespace{static DefaultObjectManager<T> T##ObjectManager;}
@@ -92,4 +148,16 @@ ObjectManager *GetObjectManager(const size_t &hash_code);
 template<typename T> inline ObjectManager *GetObjectManager()
 {
     return GetObjectManager(typeid(T).hash_code());
+}
+
+template<typename T> inline SafePtr<T> GetObjectBySerial(const size_t &serial)
+{
+    ObjectManager *om=GetObjectManager<T>();
+
+    if(!om)
+        return SafePtr<T>();
+
+    DefaultObjectManager<T> *dom=static_cast<DefaultObjectManager<T> *>(om);
+
+    return SafePtr<T>(dom->GetObjectBySerial(serial));
 }

@@ -9,21 +9,18 @@ public:
 
     const ObjectBaseInfo &  GetObjectBaseInfo   () const noexcept { return object_base_info; }                          ///<获取对象基本信息
 
+          ObjectManager *   GetObjectManager    ()       noexcept { return object_base_info.object_manager; }           ///<获取对象管理器
+
     const size_t            GetHashCode         () const noexcept { return object_base_info.hash_code; }                ///<获取对象数据类型的hash值
     const size_t            GetSerialNumber     () const noexcept { return object_base_info.serial_number; }            ///<获取对象的序列号
-
-public:
-
-    Object(const ObjectBaseInfo &obi) noexcept;
 
 protected:
 
     template<typename T> friend class SafePtr;
+    template<typename T> friend class DefaultObjectManager;
 
+    Object(const ObjectBaseInfo &obi) noexcept;
     virtual ~Object();
-    virtual void Destory();
-
-public:
     
     virtual void Deinitailize()=0;
 };//class Object
@@ -52,6 +49,25 @@ public: \
         return GetTypeHash<class_name>(); \
     }
 
+
+template<typename T> struct SafePtrData
+{
+    T *ptr;
+    int count;
+
+private:
+
+    SafePtrData(T *p)
+    {
+        ptr=p;
+        count=0;
+    }
+
+    ~SafePtrData()=default;
+
+    template<typename T> friend class DefaultObjectManager;
+};
+
 /**
  * 安全访问指针<Br>
  * 其本质类似于的WeakPtr，但是不同的是:
@@ -62,37 +78,7 @@ public: \
  */
 template<typename T> class SafePtr
 {
-    struct SafePtrData
-    {
-        T *ptr;
-        int count;
-
-    public:
-
-        SafePtrData(T *p)
-        {
-            ptr=p;
-            count=1;
-        }
-    };
-
-    SafePtrData *data;
-
-protected:
-
-    void unlink()
-    {
-        if(!data)
-            return;
-
-        if(data->count>0)
-            --data->count;
-
-        if(data->count==0)
-            delete data;
-
-        data=nullptr;
-    }
+    SafePtrData<T> *data;
 
 public:
 
@@ -101,27 +87,26 @@ public:
         data=nullptr;
     }
 
-    SafePtr(T *ptr)
+    SafePtr(SafePtrData<T> *spd)
     {
-        data=new SafePtrData(ptr);
+        data=spd;
+
+        if(data)
+            ++data->count;
     }
 
-    SafePtr(SafePtr<T> &sp)
-    {
-        data=nullptr;
-        operator=(sp);
-    }
+public:
 
     virtual ~SafePtr()
     {
-        unlink();
+        Release();
     }
 
             T *Get()        {return data?data->ptr:nullptr;}
     const   T *Get() const  {return data?data->ptr:nullptr;}
 
-    T *operator->() { return Get(); }
-    T &operator*() { return *Get(); }
+    T *operator->() { return  Get(); }
+    T &operator* () { return *Get(); }
 
     const T *operator->() const { return Get(); }
 
@@ -138,19 +123,22 @@ public:
 
     SafePtr<T> &operator=(SafePtr<T> &sp)
     {
+        if(!sp.IsValid())
+        {
+            Release();
+            return *this;
+        }
+
         if(data)
         {
-            if(data->ptr==sp.ptr)
+            if(data->ptr==sp.data->ptr)
                 return *this;
 
-            unlink();
+            Release();
         }
 
-        if(sp.IsValid())
-        {
-            data=sp.data;
-            ++data->count;
-        }
+        data=sp.data;
+        ++data->count;
 
         return *this;
     }
@@ -160,13 +148,13 @@ public:
     {
         if(T::StaticHashCode()!=OT.StaticHashCode())
         {
-            unlink();
+            Release();
             return *this;
         }
 
         if(data!=spd.data)
         {
-            unlink();
+            Release();
             data=spd.data;
             ++data->count;
         }
@@ -174,32 +162,66 @@ public:
         return *this;
     }
 
-    SafePtr<T> &operator=(Object *obj)
-    {
-        if(!obj)
-        {
-            unlink();
-            return *this;
-        }
+    SafePtr<T> &operator=(Object *obj)=delete;
 
-        if(T::StaticHashCode()!=obj->GetHashCode())
-        {
-            unlink();
-            return *this;
-        }
-
-        data=new SafePtrData(obj);
-        return *this;
-    }
-
+    /**
+     * 强制释放对象(不管所有权问题，强制释放)
+     */
     void Destory()
     {
-        if(data&&data->ptr)
-        {
-            data->ptr->Destory();
-            data->ptr=nullptr;
+        if(!data)
+            return;
 
-            unlink();
+        if(!data->ptr)
+            return;
+
+        ObjectManager *om=data->ptr->GetObjectManager();
+
+        if(!om)
+        {
+            std::cerr<<"SafePtr<"<<GetTypeName<T>()<<">::Destory() error, manager is null."<<std::endl;
+            return;
         }
+        
+        std::cout<<"SafePtr<"<<GetTypeName<T>()<<">::Destory() serial:"<<data->ptr->GetSerialNumber()<<std::endl;
+
+        DefaultObjectManager<T> *dom=static_cast<DefaultObjectManager<T> *>(om);
+
+        dom->ReleaseObject(data);
+
+        data=nullptr;
+    }
+
+    /**
+     * 释放对象(释放所有权，不代表会被释放。当所有权计数为0时会被释放)
+     * 
+     * \return 依然持有对象的数量
+     */
+    int Release()
+    {
+        if(!data)
+            return -1;
+
+        if(data->ptr)
+        {
+            std::cout<<"SafePtr<"<<GetTypeName<T>()<<">::Release() serial:"<<data->ptr->GetSerialNumber()<<std::endl;
+        }
+
+        int result;
+
+        if(data->count==1)
+        {
+            Destory();
+            result=0;
+        }
+        else
+        {
+            --data->count;
+
+            result=data->count;
+        }
+
+        data=nullptr;
+        return result;
     }
 };//template<typename T> class SafePtr

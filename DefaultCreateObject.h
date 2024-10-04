@@ -10,12 +10,12 @@ template<typename T,typename ...ARGS> SafePtr<T> DefaultCreateObject(const char 
 
     if(!om)
         return SafePtr<T>();
+    
+    DefaultObjectManager<T> *dom=static_cast<DefaultObjectManager<T> *>(om);
 
-    T *obj=static_cast<T *>(om->CreateObject(source_file,source_function,source_line));
+    SafePtrData<T> *spd=dom->CreateObject(source_file,source_function,source_line,args...);
 
-    obj->Initailize(args...);
-
-    return SafePtr<T>(obj);
+    return SafePtr<T>(spd);
 }
 
 #define NEW_OBJECT(class_name,...) DefaultCreateObject<class_name>(__FILE__,__FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__)
