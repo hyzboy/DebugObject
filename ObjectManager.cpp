@@ -31,7 +31,7 @@ bool RegistryObjectManager(ObjectManager *om)
 
     omm->insert({hc,om});
 
-    std::cout<<"RegistryObjectManager("<<hc<<":"<<om->GetTypename()<<")"<<std::endl;
+    std::cout<<"RegistryObjectManager("<<std::hex<<hc<<":"<<om->GetTypename()<<")"<<std::endl;
 
     return(true);
 }
@@ -50,7 +50,7 @@ void UnregistryObjectManager(ObjectManager *om)
     if(omi.key()!=hc)
         return;
 
-    std::cout<<"UnregistryObjectManager("<<hc<<":"<<om->GetTypename()<<")"<<std::endl;
+    std::cout<<"UnregistryObjectManager("<<std::hex<<hc<<":"<<om->GetTypename()<<")"<<std::endl;
 
     omm->erase(hc);
 }

@@ -82,16 +82,14 @@ protected:
     template<typename T,typename ...ARGS> friend SafePtr<T> DefaultCreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args);
 
     template<typename ...ARGS>
-    SafePtrData<T> *CreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args)
+    SafePtrData<T> *CreateObject(const SourceCodeLocation &scl,ARGS...args)
     {
         ObjectBaseInfo obi
         {
             .hash_code      =GetHashCode(),
             .object_manager =this,
             .serial_number  =AcquireSerialNumber(),
-            .source_file    =source_file,
-            .source_function=source_function,
-            .source_line    =source_line
+            .source_code_location=scl
         };
 
         Object *obj=_CreateObject(obi);

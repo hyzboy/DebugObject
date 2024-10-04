@@ -13,7 +13,14 @@ template<typename T,typename ...ARGS> SafePtr<T> DefaultCreateObject(const char 
     
     DefaultObjectManager<T> *dom=static_cast<DefaultObjectManager<T> *>(om);
 
-    SafePtrData<T> *spd=dom->CreateObject(source_file,source_function,source_line,args...);
+    const SourceCodeLocation scl
+    {
+        .file=source_file,
+        .func=source_function,
+        .line=source_line
+    };
+
+    SafePtrData<T> *spd=dom->CreateObject(scl,args...);
 
     return SafePtr<T>(spd);
 }
