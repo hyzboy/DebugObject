@@ -20,4 +20,4 @@ template<typename T,typename ...ARGS> SafePtr<T> DefaultCreateObject(const char 
 
 #define DEFAULT_CREATE_OBJECT(class_name,...) DefaultCreateObject<class_name>(__FILE__,__FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__)
 
-#define DEFINE_DEFAULT_CREATE_OBJECT(class_name,type_name,...) SafePtr<class_name> type_name=DefaultCreateObject<class_name>(__FILE__,__FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__)
+#define DEFINE_DEFAULT_CREATE_OBJECT(class_name,type_name,...) SafePtr<class_name> type_name=DEFAULT_CREATE_OBJECT(class_name,__VA_OPT__(,) __VA_ARGS__)

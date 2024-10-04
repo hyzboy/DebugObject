@@ -27,17 +27,16 @@ DEFINE_DEFAULT_OBJECT_MANAGER(DebugObject);
 
 int main()
 {
-    //DebugObject *obj1=DefaultCreateObject<DebugObject>();
-    //DebugObject *obj2=DefaultCreateObject<DebugObject>();
-
     SafePtr<DebugObject> obj1=DEFAULT_CREATE_OBJECT(DebugObject);
 
-    DEFINE_DEFAULT_CREATE_OBJECT(DebugObject,obj2);        //等于上一行
+    DEFINE_DEFAULT_CREATE_OBJECT(DebugObject,obj2);         //等于上一行
 
-//    obj2->Destory();
+    //DebugObject *obj3=new DebugObject();                  //编译不过(构造函数被定义为私有)
 
-    //obj1->Destory();        //(DebugObject自己的Destory) 编译不过
+    //obj1->Destory();                                      //编译不过(不允许直接调用DebugObject自己的Destory)
     obj1.Destory();             //SafePtr的Destory
+
+    //delete obj2;                                          //编译不过,SafePtr<>不能被delete
 
     if(obj1.IsValid())
     {
@@ -47,4 +46,6 @@ int main()
     {
         std::cout<<"obj1 isn't valid!"<<std::endl;
     }
+
+    return 0;
 }

@@ -123,6 +123,8 @@ public:
     T *operator->() { return Get(); }
     T &operator*() { return *Get(); }
 
+    const T *operator->() const { return Get(); }
+
     const bool operator==(const T *ptr) const noexcept { return Get()==ptr; }
     const bool operator!=(const T *ptr) const noexcept { return Get()!=ptr; }
 
