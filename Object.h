@@ -49,7 +49,7 @@ public: \
 \
     static const size_t StaticHashCode()\
     {   \
-        return GetTypeHashCode<class_name>(); \
+        return GetTypeHash<class_name>(); \
     }
 
 /**

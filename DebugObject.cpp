@@ -29,7 +29,7 @@ int main()
 {
     SafePtr<DebugObject> obj1=NEW_OBJECT(DebugObject);
 
-    DEFAULT_NEW_OBJECT(DebugObject,obj2);         //等于上一行
+    DEFINE_NEW_OBJECT(DebugObject,obj2);                    //等于上一行
 
     //DebugObject *obj3=new DebugObject();                  //编译不过(构造函数被定义为私有)
 

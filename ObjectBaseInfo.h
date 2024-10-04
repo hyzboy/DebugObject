@@ -2,10 +2,8 @@
 
 #include<iostream>
 
-template<typename T> constexpr const size_t GetTypeHashCode() noexcept
-{
-    return typeid(T).hash_code();
-}
+template<typename T> inline constexpr const size_t GetTypeHash()noexcept{return typeid(T).hash_code();} ///<取得一个类型的哈希值
+template<typename T> inline constexpr const char * GetTypeName()noexcept{return typeid(T).name();}      ///<取得一个类型的名称
 
 class ObjectManager;
 

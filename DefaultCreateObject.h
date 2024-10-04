@@ -4,7 +4,7 @@
 
 template<typename T,typename ...ARGS> SafePtr<T> DefaultCreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args)
 {
-    const size_t hc=GetTypeHashCode<T>();
+    const size_t hc=GetTypeHash<T>();
 
     ObjectManager *om=GetObjectManager(hc);
 
@@ -20,4 +20,4 @@ template<typename T,typename ...ARGS> SafePtr<T> DefaultCreateObject(const char 
 
 #define NEW_OBJECT(class_name,...) DefaultCreateObject<class_name>(__FILE__,__FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__)
 
-#define DEFAULT_NEW_OBJECT(class_name,type_name,...) SafePtr<class_name> type_name=NEW_OBJECT(class_name,__VA_OPT__(,) __VA_ARGS__)
+#define DEFINE_NEW_OBJECT(class_name,type_name,...) SafePtr<class_name> type_name=NEW_OBJECT(class_name __VA_OPT__(,) __VA_ARGS__)
