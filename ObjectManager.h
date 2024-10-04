@@ -41,7 +41,7 @@ void UnregistryObjectManager(ObjectManager *om);
 template<typename T> class DefaultObjectManager:public ObjectManager
 {
     tsl::robin_set<T *> object_set;
-    tsl::robin_map<size_t,SafePtrData<T> *> object_map;
+    tsl::robin_map<size_t,SafeObjectData<T> *> object_map;
 
 protected:
 
@@ -79,10 +79,10 @@ public:
 
 protected:
 
-    template<typename T,typename ...ARGS> friend SafePtr<T> DefaultCreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args);
+    template<typename T,typename ...ARGS> friend SafeObject<T> DefaultCreateObject(const char *source_file,const char *source_function,const size_t source_line,ARGS...args);
 
     template<typename ...ARGS>
-    SafePtrData<T> *CreateObject(const SourceCodeLocation &scl,ARGS...args)
+    SafeObjectData<T> *CreateObject(const SourceCodeLocation &scl,ARGS...args)
     {
         ObjectBaseInfo obi
         {
@@ -94,7 +94,7 @@ protected:
 
         Object *obj=_CreateObject(obi);
 
-        SafePtrData<T> *spd=new SafePtrData<T>((T *)obj);
+        SafeObjectData<T> *spd=new SafeObjectData<T>((T *)obj);
 
         object_set.insert({(T *)obj});
         object_map.insert({obj->GetSerialNumber(),spd});
@@ -104,9 +104,9 @@ protected:
         return spd;
     }
 
-    template<typename T> friend class SafePtr;
+    template<typename T> friend class SafeObject;
 
-    void ReleaseObject(SafePtrData<T> *spd)
+    void ReleaseObject(SafeObjectData<T> *spd)
     {
         if(!spd)
             return;
@@ -131,9 +131,9 @@ protected:
         }
     }
 
-    template<typename T> friend SafePtr<T> GetObjectBySerial(const size_t &serial);
+    template<typename T> friend SafeObject<T> GetObjectBySerial(const size_t &serial);
 
-    SafePtrData<T> *GetObjectBySerial(const size_t &serial)
+    SafeObjectData<T> *GetObjectBySerial(const size_t &serial)
     {
         return object_map.at(serial);
     }
@@ -148,14 +148,14 @@ template<typename T> inline ObjectManager *GetObjectManager()
     return GetObjectManager(typeid(T).hash_code());
 }
 
-template<typename T> inline SafePtr<T> GetObjectBySerial(const size_t &serial)
+template<typename T> inline SafeObject<T> GetObjectBySerial(const size_t &serial)
 {
     ObjectManager *om=GetObjectManager<T>();
 
     if(!om)
-        return SafePtr<T>();
+        return SafeObject<T>();
 
     DefaultObjectManager<T> *dom=static_cast<DefaultObjectManager<T> *>(om);
 
-    return SafePtr<T>(dom->GetObjectBySerial(serial));
+    return SafeObject<T>(dom->GetObjectBySerial(serial));
 }
