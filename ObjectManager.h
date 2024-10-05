@@ -1,5 +1,6 @@
 #pragma once
 #include"Object.h"
+#include"ObjectAllocator.h"
 #include<tsl/robin_set.h>
 #include<tsl/robin_map.h>
 
@@ -35,42 +36,20 @@ public:
 bool RegistryObjectManager(ObjectManager *om);
 void UnregistryObjectManager(ObjectManager *om);
 
-struct ObjectLifetime
-{
-    virtual void Join(ObjectManager *){};
-    virtual void Unjoin(ObjectManager *){};
-
-    virtual Object *Create(const ObjectBaseInfo &obi)=0;
-    virtual void Release(Object *)=0;
-};
-
-template<typename T> struct DefaultObjectLifetime:public ObjectLifetime
-{
-    virtual Object *Create(const ObjectBaseInfo &obi)override
-    {
-        return new T(obi);
-    }
-
-    virtual void Release(Object *obj)override
-    {
-        delete obj;
-    }
-};
-
 template<typename T> class DefaultObjectManager:public ObjectManager
 {
     tsl::robin_set<T *> object_set;
     tsl::robin_map<size_t,SafeObjectData<T> *> object_map;
 
-    ObjectLifetime *object_lifetime;
+    ObjectAllocator *object_allocator;
 
 public:
 
-    DefaultObjectManager(ObjectLifetime *ol):ObjectManager(typeid(T).hash_code(),typeid(T).name())
+    DefaultObjectManager(ObjectAllocator *oa):ObjectManager(typeid(T).hash_code(),typeid(T).name())
     {
-        object_lifetime=ol;
+        object_allocator=oa;
 
-        object_lifetime->Join(this);
+        object_allocator->Join(this);
         RegistryObjectManager(this);
     }
 
@@ -86,7 +65,7 @@ public:
             }
         }
 
-        object_lifetime->Unjoin(this);
+        object_allocator->Unjoin(this);
         UnregistryObjectManager(this);
     }
 
@@ -105,7 +84,7 @@ protected:
             .source_code_location=scl
         };
 
-        Object *obj=object_lifetime->Create(obi);
+        Object *obj=object_allocator->Create(obi);
 
         SafeObjectData<T> *spd=new SafeObjectData<T>((T *)obj);
 
@@ -130,7 +109,7 @@ protected:
         if(spd->ptr)
         {
             spd->ptr->Deinitailize();
-            object_lifetime->Release(spd->ptr);
+            object_allocator->Release(spd->ptr);
             spd->ptr=nullptr;
         }
 
@@ -154,8 +133,8 @@ protected:
 
 #define DEFINE_DEFAULT_OBJECT_MANAGER(T) namespace \
 {   \
-    static DefaultObjectLifetime<T> T##ObjectLifetime; \
-    static DefaultObjectManager<T> T##ObjectManager(&T##ObjectLifetime); \
+    static DefaultObjectAllocator<T> T##ObjectAllocator; \
+    static DefaultObjectManager<T> T##ObjectManager(&T##ObjectAllocator); \
 }
 
 ObjectManager *GetObjectManager(const size_t &hash_code);

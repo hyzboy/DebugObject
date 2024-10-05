@@ -11,9 +11,10 @@ add_executable(DebugObject  Main.cpp
                             DebugObject.h
                             DebugObject.cpp
 
+                            ObjectBaseInfo.h
+                            ObjectAllocator.h
                             Object.h
                             Object.cpp
-                            ObjectBaseInfo.h
                             ObjectManager.h
                             ObjectManager.cpp
                             DefaultCreateObject.h)
