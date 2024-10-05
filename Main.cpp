@@ -3,7 +3,7 @@
 
 int main()
 {
-    SafeObject<DebugObject> obj1=NEW_OBJECT(DebugObject);
+    SafePtr<DebugObject> obj1=NEW_OBJECT(DebugObject);
 
     DEFINE_NEW_OBJECT(DebugObject,obj2);                    //等于上一行
 
@@ -11,7 +11,7 @@ int main()
 
     obj1.Release();
 
-    //delete obj2;                                          //编译不过,SafeObject<>不能被delete
+    //delete obj2;                                          //编译不过,SafePtr<>不能被delete
 
     if(obj1.IsValid())
     {
@@ -24,7 +24,7 @@ int main()
 
     const size_t obj2_sn=obj2->GetSerialNumber();
 
-    SafeObject<DebugObject> obj2_indirect=GetObjectBySerial<DebugObject>(obj2_sn);           //直接根据序列号获取对象
+    SafePtr<DebugObject> obj2_indirect=GetObjectBySerial<DebugObject>(obj2_sn);           //直接根据序列号获取对象
 
     if(!obj2_indirect.IsValid())
     {

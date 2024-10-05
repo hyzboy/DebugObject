@@ -1,20 +1,12 @@
 #pragma once
 
 #include<iostream>
+#include"SourceCodeLocation.h"
 
 template<typename T> inline constexpr const size_t GetTypeHash()noexcept{return typeid(T).hash_code();} ///<取得一个类型的哈希值
 template<typename T> inline constexpr const char * GetTypeName()noexcept{return typeid(T).name();}      ///<取得一个类型的名称
 
 class ObjectManager;
-
-struct SourceCodeLocation
-{
-    const char *    file;               ///<源文件
-    const char *    func;               ///<函数
-    size_t          line;               ///<行号
-};
-
-#define SOURCE_CODE_LOCATION    __FILE__,__FUNCTION__,__LINE__
 
 struct ObjectBaseInfo
 {

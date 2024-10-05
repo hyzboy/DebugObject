@@ -16,7 +16,7 @@ public:
 
 protected:
 
-    template<typename T> friend class SafeObject;
+    template<typename T> friend class SafePtr;
     template<typename T> friend struct DefaultObjectAllocator;
 
     Object(const ObjectBaseInfo &obi) noexcept;
@@ -50,20 +50,20 @@ public: \
     }
 
 
-template<typename T> struct SafeObjectData
+template<typename T> struct SafePtrData
 {
     T *ptr;
     int count;
 
 private:
 
-    SafeObjectData(T *p)
+    SafePtrData(T *p)
     {
         ptr=p;
         count=0;
     }
 
-    ~SafeObjectData()=default;
+    ~SafePtrData()=default;
 
     template<typename T> friend class DefaultObjectManager;
 };
@@ -76,18 +76,18 @@ private:
  *      <li>SafePtr不会自动释放指针，它是在访问时检查指针是否有效，如果无效则返回nullptr</li>
  * </ul>
  */
-template<typename T> class SafeObject
+template<typename T> class SafePtr
 {
-    SafeObjectData<T> *data;
+    SafePtrData<T> *data;
 
 public:
 
-    SafeObject()
+    SafePtr()
     {
         data=nullptr;
     }
 
-    SafeObject(SafeObjectData<T> *spd)
+    SafePtr(SafePtrData<T> *spd)
     {
         data=spd;
 
@@ -97,7 +97,7 @@ public:
 
 public:
 
-    virtual ~SafeObject()
+    virtual ~SafePtr()
     {
         Release();
     }
@@ -113,15 +113,15 @@ public:
     const bool operator==(const T *ptr) const noexcept { return Get()==ptr; }
     const bool operator!=(const T *ptr) const noexcept { return Get()!=ptr; }
 
-    const bool operator==(const SafeObject<T> &sp) const { return Get()==sp.Get(); }
-    const bool operator!=(const SafeObject<T> &sp) const { return Get()!=sp.Get(); }
+    const bool operator==(const SafePtr<T> &sp) const { return Get()==sp.Get(); }
+    const bool operator!=(const SafePtr<T> &sp) const { return Get()!=sp.Get(); }
 
     const bool IsValid() const noexcept
     {
         return data&&data->ptr;
     }
 
-    SafeObject<T> &operator=(SafeObject<T> &sp)
+    SafePtr<T> &operator=(SafePtr<T> &sp)
     {
         if(!sp.IsValid())
         {
@@ -144,7 +144,7 @@ public:
     }
 
     template<typename OT>
-    SafeObject<T> &operator=(SafeObject<OT> &spd)
+    SafePtr<T> &operator=(SafePtr<OT> &spd)
     {
         if(T::StaticHashCode()!=OT.StaticHashCode())
         {
@@ -162,7 +162,7 @@ public:
         return *this;
     }
 
-    SafeObject<T> &operator=(Object *obj)=delete;
+    SafePtr<T> &operator=(Object *obj)=delete;
 
     /**
      * 强制释放对象(不管所有权问题，强制释放)
@@ -179,11 +179,11 @@ public:
 
         if(!om)
         {
-            std::cerr<<"SafeObject<"<<GetTypeName<T>()<<">::Destory() error, manager is null."<<std::endl;
+            std::cerr<<"SafePtr<"<<GetTypeName<T>()<<">::Destory() error, manager is null."<<std::endl;
             return;
         }
         
-        std::cout<<"SafeObject<"<<GetTypeName<T>()<<">::Destory() serial:"<<data->ptr->GetSerialNumber()<<std::endl;
+        std::cout<<"SafePtr<"<<GetTypeName<T>()<<">::Destory() serial:"<<data->ptr->GetSerialNumber()<<std::endl;
 
         DefaultObjectManager<T> *dom=static_cast<DefaultObjectManager<T> *>(om);
 
@@ -204,7 +204,7 @@ public:
 
         if(data->ptr)
         {
-            std::cout<<"SafeObject<"<<GetTypeName<T>()<<">::Release() serial:"<<data->ptr->GetSerialNumber()<<std::endl;
+            std::cout<<"SafePtr<"<<GetTypeName<T>()<<">::Release() serial:"<<data->ptr->GetSerialNumber()<<std::endl;
         }
 
         int result;
@@ -224,4 +224,4 @@ public:
         data=nullptr;
         return result;
     }
-};//template<typename T> class SafeObject
+};//template<typename T> class SafePtr

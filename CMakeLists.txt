@@ -11,6 +11,7 @@ add_executable(DebugObject  Main.cpp
                             DebugObject.h
                             DebugObject.cpp
 
+                            SourceCodeLocation.h
                             ObjectBaseInfo.h
                             ObjectAllocator.h
                             Object.h
