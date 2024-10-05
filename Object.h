@@ -17,7 +17,7 @@ public:
 protected:
 
     template<typename T> friend class SafeObject;
-    template<typename T> friend class DefaultObjectManager;
+    template<typename T> friend struct DefaultObjectLifetime;
 
     Object(const ObjectBaseInfo &obi) noexcept;
     virtual ~Object();
@@ -30,7 +30,7 @@ template<typename T> class DefaultObjectManager;
 #define OBJECT_CLASS_BODY(class_name) \
 private:    \
 \
-    friend class DefaultObjectManager<class_name>;\
+    friend struct DefaultObjectLifetime<class_name>;\
 \
     class_name(const ObjectBaseInfo &obi):Object(obi)   \
     {   \
